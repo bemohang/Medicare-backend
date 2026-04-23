@@ -2,68 +2,59 @@ const mongoose = require("mongoose");
 
 const appointmentSchema = new mongoose.Schema(
   {
-    patient:      
+    patient:
        { type: mongoose.Schema.Types.ObjectId,
          ref: "User",
-          required: true 
+          required: true
         },
-    doctor:          
-    { type: mongoose.Schema.Types.ObjectId, 
-      ref: "User", 
+    doctor:
+    { type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       default: null
      },
-    // Patient's requested doctor 
-    doctorRequest: 
-      { type: String, 
+    // Patient's requested doctor
+    doctorRequest:
+      { type: String,
         default: null
        },
-    appointmentDate: 
-    { type: Date,   
+    appointmentDate:
+    { type: Date,
       required: true
      },
-    appointmentTime: 
-    { type: String, 
+    appointmentTime:
+    { type: String,
       required: true
      },
-    reason:          
-    { type: String, 
-      trim: true, 
-      default: "" 
+    reason:
+    { type: String,
+      trim: true,
+      default: ""
     },
     status: {
       type:    String,
       enum:    ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"],
       default: "PENDING",
     },
-    
-    completedAt: { 
-      type: Date, 
-      default: null 
-    },
-    
-    cancelledBy:     
-    { type: mongoose.Schema.Types.ObjectId, 
-      ref: "User", 
-      default: null
-     },
-    cancelledByRole: 
-    { type: String, 
-      enum: ["PATIENT", "DOCTOR", "ADMIN", null], 
-      default: null
-     },
-    cancelReason:    
-    { type: String, 
-      default: null 
-    },
-    cancelledAt:     
-    { type: Date,   
-      default: null 
-    },
+
+    // Set when doctor marks complete
+    completedAt:   { type: Date,   default: null },
+
+    // Doctor confirmation details — required on complete action
+    diagnosis:     { type: String, default: null },
+    medication:    { type: String, default: null },
+    followUpDate:  { type: Date,   default: null },
+    referralNotes: { type: String, default: null },
+
+    // Cancellation metadata
+    cancelledBy:     { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    cancelledByRole: { type: String, enum: ["PATIENT", "DOCTOR", "ADMIN", null], default: null },
+    cancelReason:    { type: String, default: null },
+    cancelledAt:     { type: Date,   default: null },
   },
   { timestamps: true }
 );
 
-// Prevent double-booking: same doctor + date + time (active slots only)
+// Prevent double-booking: same doctor + date + time
 appointmentSchema.index(
   { doctor: 1, appointmentDate: 1, appointmentTime: 1 },
   {

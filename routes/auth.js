@@ -105,4 +105,58 @@ router.post("/create-doctor", authenticate, authorize("ADMIN"), async (req, res)
   }
 });
 
+
+// create admin  — ADMIN only creates additional admin accounts
+router.post("/create-admin", authenticate, authorize("ADMIN"), async (req, res) => {
+  try {
+    const { firstName, lastName, email, password } = req.body;
+
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: "First name, last name, email and password are required." });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters." });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(409).json({ message: "An account with this email already exists." });
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const admin = new User({
+      firstName, lastName, email, passwordHash,
+      role: "ADMIN",
+    });
+
+    await admin.save();
+    const saved = admin.toObject();
+    delete saved.passwordHash;
+    res.status(201).json({ message: "Admin account created successfully.", admin: saved });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// seed-admin  — one-time only, creates first admin if none exists
+router.post("/seed-admin", async (req, res) => {
+  try {
+    const existing = await User.findOne({ role: "ADMIN" });
+    if (existing) {
+      return res.status(409).json({ message: "An admin account already exists. Use the dashboard to create more." });
+    }
+    const passwordHash = await bcrypt.hash("Admin@123", 12);
+    const admin = new User({
+      firstName: "System", lastName: "Admin",
+      email: "admin@medicare.com", passwordHash,
+      role: "ADMIN",
+    });
+    await admin.save();
+    res.status(201).json({
+      message: "Seed admin created. Email: admin@medicare.com  Password: Admin@123 — Change this immediately after login.",
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

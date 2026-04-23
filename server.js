@@ -3,9 +3,10 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
-const authRoutes        = require("./routes/auth");
-const userRoutes        = require("./routes/users");
-const appointmentRoutes = require("./routes/appointments");
+const authRoutes            = require("./routes/auth");
+const userRoutes            = require("./routes/users");
+const appointmentRoutes     = require("./routes/appointments");
+const specializationRoutes  = require("./routes/specializations");
 
 const server = express();
 const PORT   = process.env.PORT || 5000;
@@ -14,9 +15,10 @@ server.use(cors({ origin: "*" }));
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 
-server.use("/api/auth",         authRoutes);
-server.use("/api/users",        userRoutes);
-server.use("/api/appointments", appointmentRoutes);
+server.use("/api/auth",            authRoutes);
+server.use("/api/users",           userRoutes);
+server.use("/api/appointments",    appointmentRoutes);
+server.use("/api/specializations", specializationRoutes);
 
 server.get("/", (_req, res) => res.json({ message: "MediCare API running" }));
 
